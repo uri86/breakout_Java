@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+//import java.io.File;
 import java.util.*;
 public class BlockPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
@@ -76,11 +77,15 @@ public class BlockPanel extends JPanel implements ActionListener {
         for (int i = blocks.size() - 1; i >= 0; i--) {
             Block block = blocks.get(i);
             if (block.getBounds().intersects(ballBounds)) {
+            	// Get working directory
+            	// System.out.println(new File(".").getAbsolutePath());
+            	Sound.play("./audio/breakout-meetingBlock.wav"); // Play hitting block sound
             	this.score++;
                 blocks.remove(i); // Remove the block if it collides
                 ball.bounceOffVertical(); // Bounce ball on collision
                 angle = ball.angle();
                 if(angle > 40 && angle < 120 ) {
+                	ball.randomAngleChange();
                 	ball.bounceOffHorizontal(); // Bounce ball on collision and the chance is 0.
                 }
                 break; // Exit loop after collision to avoid multiple detections
@@ -88,15 +93,18 @@ public class BlockPanel extends JPanel implements ActionListener {
         }
         if(paddleBounds.intersects(ballBounds)) {
         	ball.bounceOffHorizontal();
+        	Sound.play("./audio/breakout-meetingPaddle.wav"); // Play hitting paddle sound
         }
     }
     private void checkBounds() {
         Rectangle ballBounds = ball.getBounds();
         if (ballBounds.getMinX() < 0 || ballBounds.getMaxX() > getWidth()) {
             ball.bounceOffVertical(); // Bounce off left or right edge
+            Sound.play("./audio/breakout-meetingSideWalls.wav"); // Play hitting side walls sound
         }
         if (ballBounds.getMinY() < 0 || ballBounds.getMaxY() > getHeight()) {
             ball.bounceOffHorizontal(); // Bounce off top or bottom edge
+            Sound.play("./audio/breakout-meetingSideWalls.wav"); // Play hitting side walls sound
         }
         if (ballBounds.getMaxY() > 770) {
             timer.stop(); // Stop the timer to pause the game
@@ -105,7 +113,9 @@ public class BlockPanel extends JPanel implements ActionListener {
         if (paddle.x < 0) {
         	paddle.x = 0;
         }
-        if (paddle.x + paddle.width > getWidth()) paddle.x = getWidth() - paddle.width;
+        if (paddle.x + paddle.width > getWidth()) { 
+        	paddle.x = getWidth() - paddle.width;
+        }
     }
     
     private void setupKeyBindings() {
