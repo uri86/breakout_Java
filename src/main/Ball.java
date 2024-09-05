@@ -43,21 +43,19 @@ public class Ball {
     	double angle = Math.toDegrees(Math.atan(this.ySpeed/this.ySpeed));
     	return angle;
     }
-    public void randomizeAngle() {
-    	//get the angle of the 
-    	double angle = this.angle();
-    	//add a randomized number to the angle
-    	angle += Math.random()*16;;
-    	//convert to radians from degrees
-    	angle = Math.toRadians(angle);
-    	//get the ratio of the angle
-    	double tan = Math.tan(angle);
-    	//add a small amount of speed to x axis
-    	this.xSpeed -= 0.5;
-    	//recalculate the speed of the y axis
-    	this.ySpeed = tan*this.xSpeed;
-    }
     public void randomAngleChange() {
     	this.xSpeed += Math.random()*4 - 1.5;
+    }
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getWidth() {
+        return diameter; // Since the ball is a circle, width is the same as its diameter
+    }
+    public void resetSpeed() {
+    	this.xSpeed = -2;
+    	this.ySpeed = -2;
     }
 }

@@ -42,4 +42,13 @@ public class Paddle {
     public void stop() {
     	this.xSpeed = 0;
     }
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
 }
