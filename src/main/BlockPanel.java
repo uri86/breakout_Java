@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +17,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 	private Ball ball;
     private Timer timer;
     private Paddle paddle;
+    private int score;
     
     // Paddle movement
     private boolean movingLeft = false;
@@ -25,13 +27,14 @@ public class BlockPanel extends JPanel implements ActionListener {
         this.blocks = blocks;
         this.ball = ball;
         this.paddle = paddle;
+        this.score = 0;
         this.setPreferredSize(new Dimension(1423, 800));
         this.setBackground(backgroundColor);
         
         // Setup a timer to repeatedly call actionPerformed
         this.timer = new Timer(10, this); // Adjust delay as needed
         this.timer.start();
-     // Setup key bindings for paddle movement
+        // Setup key bindings for paddle movement
         setupKeyBindings();
     }
 	@Override
@@ -42,6 +45,14 @@ public class BlockPanel extends JPanel implements ActionListener {
         }
         ball.draw(g); // Draw the ball
         paddle.draw(g); // Draw the paddle
+        
+        // Set text properties (color, font, etc.)
+        g.setColor(Color.WHITE); // Set the text color
+        g.setFont(new Font("Arial", Font.BOLD, 20)); // Set the font (optional)
+        
+        // Draw the text at a specific position (x, y)
+        g.drawString("Score: " + this.score, 20, 760);
+        //g.drawString("Lives: 3", 1320, 760);    // Example lives display at (20, 60)
     }
 	public void actionPerformed(ActionEvent e) {
         ball.move();
@@ -59,16 +70,17 @@ public class BlockPanel extends JPanel implements ActionListener {
     }
 
     private void checkCollision() {
-    	int chance;
+    	double angle;
         Rectangle ballBounds = ball.getBounds();
         Rectangle paddleBounds = paddle.getBounds();
         for (int i = blocks.size() - 1; i >= 0; i--) {
             Block block = blocks.get(i);
             if (block.getBounds().intersects(ballBounds)) {
+            	this.score++;
                 blocks.remove(i); // Remove the block if it collides
                 ball.bounceOffVertical(); // Bounce ball on collision
-                chance = (int)(Math.random()*(3+1));
-                if(chance == 0) {
+                angle = ball.angle();
+                if(angle > 40 && angle < 120 ) {
                 	ball.bounceOffHorizontal(); // Bounce ball on collision and the chance is 0.
                 }
                 break; // Exit loop after collision to avoid multiple detections

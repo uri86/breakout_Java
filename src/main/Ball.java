@@ -38,4 +38,9 @@ public class Ball {
     public Rectangle getBounds() {
         return new Rectangle((int)(x), (int)(y), diameter, diameter);
     }
+    public double angle() {
+    	// Calculate the angle and convert it to degrees
+    	double angle = Math.toDegrees(Math.acos(this.xSpeed/Math.sqrt(Math.pow(this.xSpeed, 2)+Math.pow(this.ySpeed,2))));
+    	return angle;
+    }
 }
