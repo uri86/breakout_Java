@@ -28,11 +28,11 @@ public class Ball {
 		g.fillOval((int) (x), (int) (y), diameter, diameter);
 	}
 
-	public void bounceOffHorizontal() {
+	public void bounceOffVertical() {
 		ySpeed = -ySpeed * 1.01;
 	}
 
-	public void bounceOffVertical() {
+	public void bounceOffHorizontal() {
 		xSpeed = -xSpeed * 1.01;
 	}
 
@@ -41,13 +41,14 @@ public class Ball {
 	}
 
 	public double angle() {
-		// Calculate the angle and convert it to degrees
-		double angle = Math.toDegrees(Math.atan(this.ySpeed / this.ySpeed));
-		return angle;
+		return Math.toDegrees(Math.atan(this.ySpeed / this.xSpeed));
 	}
 
 	public void randomAngleChange() {
-		this.xSpeed += Math.random() * 4 - 1.5;
+		double angle = Math.toRadians(this.angle() + (Math.random() * 21) - 10);
+		double vector = Physics.getVector(Math.toRadians(this.angle()), this.ySpeed);
+		this.xSpeed = Physics.getXVector(vector, angle);
+		this.ySpeed = Physics.getYVector(vector, angle);
 	}
 
 	public void setPosition(int x, int y) {
@@ -62,5 +63,9 @@ public class Ball {
 	public void resetSpeed() {
 		this.xSpeed = -2;
 		this.ySpeed = -2;
+	}
+	
+	public void setX(double x) {
+		this.x = x;
 	}
 }

@@ -130,8 +130,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 			if (blocks.get(i).isHit(ball)) {
 				Sound.play("./audio/breakout-meetingBlock.wav");
 				ball.bounceOffVertical();
-				if (ball.angle() < 60 || ball.angle() > 120) {
-					ball.randomAngleChange();
+				if (Math.abs(ball.angle()) < 40 || Math.abs(ball.angle()) > 140) {
 					ball.bounceOffHorizontal();
 				}
 				if(blocks.get(i).isDestroyed()) {
@@ -143,7 +142,11 @@ public class BlockPanel extends JPanel implements ActionListener {
 		}
 
 		if (paddle.isHit(ball)) {
-			ball.bounceOffHorizontal();
+			ball.bounceOffVertical();
+			ball.randomAngleChange();
+			if (Math.abs(ball.angle()) < 40 || Math.abs(ball.angle()) > 140) {
+				ball.bounceOffHorizontal();
+			}
 			Sound.play("./audio/breakout-meetingPaddle.wav");
 		}
 
@@ -166,12 +169,12 @@ public class BlockPanel extends JPanel implements ActionListener {
 		Rectangle ballBounds = ball.getBounds();
 
 		if (ballBounds.getMinX() < 0 || ballBounds.getMaxX() > getWidth()) {
-			ball.bounceOffVertical();
+			ball.bounceOffHorizontal();
 			Sound.play("./audio/breakout-meetingSideWalls.wav");
 		}
 
 		if (ballBounds.getMinY() < 0 || ballBounds.getMaxY() > getHeight()) {
-			ball.bounceOffHorizontal();
+			ball.bounceOffVertical();
 			Sound.play("./audio/breakout-meetingSideWalls.wav");
 		}
 
