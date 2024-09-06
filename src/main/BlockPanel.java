@@ -99,7 +99,8 @@ public class BlockPanel extends JPanel implements ActionListener {
 		g.drawString("YOU WIN!", 590, 300);
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Arial", Font.PLAIN, 20));
-		g.drawString("Press ENTER to Restart", 620, 350);
+		g.drawString("Press ENTER to Restart", 610, 350);
+		Sound.play("./audio/youWin.wav");
 	}
 
 	@Override
