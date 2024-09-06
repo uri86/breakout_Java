@@ -129,12 +129,14 @@ public class BlockPanel extends JPanel implements ActionListener {
 		for (int i = blocks.size() - 1; i >= 0; i--) {
 			if (blocks.get(i).isHit(ball)) {
 				Sound.play("./audio/breakout-meetingBlock.wav");
-				score++;
-				blocks.remove(i);
 				ball.bounceOffVertical();
 				if (ball.angle() < 60 || ball.angle() > 120) {
 					ball.randomAngleChange();
 					ball.bounceOffHorizontal();
+				}
+				if(blocks.get(i).isDestroyed()) {
+					score++;
+					blocks.remove(i);
 				}
 				break;
 			}
@@ -295,9 +297,9 @@ public class BlockPanel extends JPanel implements ActionListener {
 
 	private void loadLevels() {
 		levels = new ArrayList<>();
-		List<Block> level1 = createLevel(7, 20, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, Color.ORANGE });
-		List<Block> level2 = createLevel(8, 20, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK });
-		List<Block> level3 = createLevel(9, 20, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK, new Color(128, 0, 128)});
+		List<Block> level1 = createLevel(7, 20, 1, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, new Color(128, 0, 128) });
+		List<Block> level2 = createLevel(8, 20, 2, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK });
+		List<Block> level3 = createLevel(8, 20, 3, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.ORANGE, new Color(128, 0, 128)});
 
 		levels.add(level1);
 		levels.add(level2);
@@ -311,7 +313,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 		blocks.addAll(levels.get(currentLevel));
 	}
 
-	private List<Block> createLevel(int rows, int cols, Color[] color) {
+	private List<Block> createLevel(int rows, int cols, int hits, Color[] color) {
 		List<Block> levelBlocks = new ArrayList<>();
 		int blockWidth = 62;
 		int blockHeight = 25;
@@ -323,7 +325,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 			for (int col = 0; col < cols; col++) {
 				int x = offsetX + col * (blockWidth + padding);
 				int y = offsetY + row * (blockHeight + padding);
-				levelBlocks.add(new Block(x, y, blockWidth, blockHeight, color[row]));
+				levelBlocks.add(new Block(x, y, blockWidth, blockHeight, hits, color[row]));
 			}
 		}
 		return levelBlocks;
