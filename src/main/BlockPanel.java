@@ -10,180 +10,208 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
-//import java.io.File;
 import java.util.*;
 
 public class BlockPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
+
 	private List<Block> blocks;
+	private List<List<Block>> levels;
 	private Ball ball;
-	private Timer timer;
 	private Paddle paddle;
-	private int score;
-	private int lives;
-	// Paddle movement
+	private Timer timer;
+
+	private int score = 0;
+	private int lives = 3;
+	private int currentLevel = 0;
+
 	private boolean movingLeft = false;
 	private boolean movingRight = false;
 
-	// Add a gameState variable to manage different states of the game
 	private enum GameState {
-		START_SCREEN, PLAYING, ELIMINATED
+		START_SCREEN, PLAYING, ELIMINATED, WIN
 	}
 
 	private GameState gameState;
 
-	public BlockPanel(List<Block> blocks, Ball ball, Paddle paddle, Color backgroundColor) {
-		this.blocks = blocks;
+	public BlockPanel(Ball ball, Paddle paddle, Color backgroundColor) {
+		blocks = new ArrayList<>();
 		this.ball = ball;
 		this.paddle = paddle;
-		this.score = 0;
-		this.lives = 3;
 		this.gameState = GameState.START_SCREEN;
-		this.setPreferredSize(new Dimension(1423, 800));
-		this.setBackground(backgroundColor);
-		// Setup a timer to repeatedly call actionPerformed
+
+		setPreferredSize(new Dimension(1423, 800));
+		setBackground(backgroundColor);
+
 		this.timer = new Timer(10, this);
 		this.timer.start();
-		// Setup key bindings for keyboard actions
+
 		setupKeyBindings();
+		loadLevels();
 	}
 
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		if (gameState == GameState.START_SCREEN) {
-			// Display start screen
-			g.setColor(Color.WHITE);
-			g.setFont(new Font("Arial", Font.BOLD, 40));
-			g.drawString("BREAKOUT GAME", 540, 300);
-			g.setFont(new Font("Arial", Font.PLAIN, 20));
-			g.drawString("Press ENTER to Start", 620, 350);
-		} else if (gameState == GameState.PLAYING) {
-			// Render game elements
-			for (Block block : blocks) {
-				block.draw(g); // Draw each block in the list
-			}
-			this.ball.draw(g); // Draw the ball
-			this.paddle.draw(g); // Draw the paddle
-			// Set text properties (color, font, etc.)
-			g.setColor(Color.WHITE); // Set the text color
-			g.setFont(new Font("Arial", Font.BOLD, 20));
-			g.drawString("Score: " + this.score, 20, 760);
-			g.drawString("Lives: " + this.lives, 1320, 760);
-		} else if (gameState == GameState.ELIMINATED) {
-			// Display eliminated screen
-			g.setColor(Color.RED);
-			g.setFont(new Font("Arial", Font.BOLD, 40));
-			g.drawString("GAME OVER", 590, 300);
-			g.setColor(Color.WHITE);
-			g.setFont(new Font("Arial", Font.PLAIN, 20));
-			g.drawString("Press ENTER to go back to the Start screen", 515, 350);
-			Sound.play("./audio/game-over.wav");
+
+		switch (gameState) {
+		case START_SCREEN -> drawStartScreen(g);
+		case PLAYING -> drawGameElements(g);
+		case ELIMINATED -> drawGameOverScreen(g);
+		case WIN -> drawWinScreen(g);
 		}
 	}
 
+	private void drawStartScreen(Graphics g) {
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Arial", Font.BOLD, 40));
+		g.drawString("BREAKOUT GAME", 540, 300);
+		g.setFont(new Font("Arial", Font.PLAIN, 20));
+		g.drawString("Press ENTER to Start", 620, 350);
+	}
+
+	private void drawGameElements(Graphics g) {
+		for (Block block : blocks) {
+			block.draw(g);
+		}
+		ball.draw(g);
+		paddle.draw(g);
+
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Arial", Font.BOLD, 20));
+		g.drawString("Score: " + score, 20, 760);
+		g.drawString("Lives: " + lives, 1320, 760);
+	}
+
+	private void drawGameOverScreen(Graphics g) {
+		g.setColor(Color.RED);
+        g.setFont(new Font("Arial", Font.BOLD, 40));
+        g.drawString("GAME OVER", 590, 300);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 20));
+        g.drawString("Press ENTER to Restart", 610, 350);
+        Sound.play("./audio/game-over.wav");
+	}
+
+	private void drawWinScreen(Graphics g) {
+		g.setColor(Color.GREEN);
+		g.setFont(new Font("Arial", Font.BOLD, 40));
+		g.drawString("YOU WIN!", 590, 300);
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Arial", Font.PLAIN, 20));
+		g.drawString("Press ENTER to Restart", 620, 350);
+	}
+
+	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (this.gameState == GameState.PLAYING) {
-			this.ball.move();
-			if (this.movingLeft) {
-				this.paddle.moveLeft();
-			} else if (movingRight) {
-				this.paddle.moveRight();
-			} else {
-				this.paddle.stop();
-			}
-			this.paddle.move();
+		if (gameState == GameState.PLAYING) {
+			ball.move();
+			handlePaddleMovement();
+			paddle.move();
 			checkCollision();
 			checkBounds();
 			repaint();
 		}
 	}
 
+	private void handlePaddleMovement() {
+		if (this.movingLeft) {
+			paddle.moveLeft();
+		} else if (this.movingRight) {
+			paddle.moveRight();
+		} else {
+			paddle.stop();
+		}
+	}
+
 	private void checkCollision() {
-		double angle;
-		for (int i = this.blocks.size() - 1; i >= 0; i--) {
-			if (this.blocks.get(i).isHit(this.ball)) {
+		for (int i = blocks.size() - 1; i >= 0; i--) {
+			if (blocks.get(i).isHit(ball)) {
 				Sound.play("./audio/breakout-meetingBlock.wav");
-				this.score++;
-				this.blocks.remove(i); // Remove the block if it collides
-				this.ball.bounceOffVertical(); // Bounce ball on collision
-				angle = this.ball.angle();
-				if (angle < 60 || angle > 120) {
-					this.ball.randomAngleChange();
-					this.ball.bounceOffHorizontal();
+				score++;
+				blocks.remove(i);
+				ball.bounceOffVertical();
+				if (ball.angle() < 60 || ball.angle() > 120) {
+					ball.randomAngleChange();
+					ball.bounceOffHorizontal();
 				}
-				break; // Exit loop after collision to avoid multiple detections
+				break;
 			}
 		}
-		if (this.paddle.isHit(this.ball)) {
-			this.ball.bounceOffHorizontal();
+
+		if (paddle.isHit(ball)) {
+			ball.bounceOffHorizontal();
 			Sound.play("./audio/breakout-meetingPaddle.wav");
+		}
+
+		if (blocks.isEmpty()) {
+			loadNextLevel();
+		}
+	}
+
+	private void loadNextLevel() {
+		currentLevel++;
+		if (currentLevel < levels.size()) {
+			resetBallAndPaddle();
+			loadCurrentLevel();
+		} else {
+			gameState = GameState.WIN;
 		}
 	}
 
 	private void checkBounds() {
-		Rectangle ballBounds = this.ball.getBounds();
+		Rectangle ballBounds = ball.getBounds();
+
 		if (ballBounds.getMinX() < 0 || ballBounds.getMaxX() > getWidth()) {
-			this.ball.bounceOffVertical(); // Bounce off left or right edge
-			Sound.play("./audio/breakout-meetingSideWalls.wav"); // Play hitting side walls sound
+			ball.bounceOffVertical();
+			Sound.play("./audio/breakout-meetingSideWalls.wav");
 		}
+
 		if (ballBounds.getMinY() < 0 || ballBounds.getMaxY() > getHeight()) {
-			this.ball.bounceOffHorizontal(); // Bounce off top or bottom edge
-			Sound.play("./audio/breakout-meetingSideWalls.wav"); // Play hitting side walls sound
+			ball.bounceOffHorizontal();
+			Sound.play("./audio/breakout-meetingSideWalls.wav");
 		}
+
 		if (ballBounds.getMaxY() > 770) {
-			this.timer.stop(); // Stop the timer to pause the game
-			if (this.lives > 0) {
-				this.lives--;
-				resetBallAndPaddle();
-				this.timer.start();
-				this.gameState = GameState.PLAYING;
-			} else {
-				this.gameState = GameState.ELIMINATED;
-			}
+			timer.stop();
+			handleLifeLoss();
 		}
-		// Prevent the paddle from moving outside the panel
-		if (this.paddle.getX() < 0) {
-			this.paddle.setX(0);
+
+		checkPaddleBounds();
+	}
+
+	private void handleLifeLoss() {
+		if (lives > 0) {
+			lives--;
+			resetBallAndPaddle();
+			timer.start();
+			gameState = GameState.PLAYING;
+		} else {
+			gameState = GameState.ELIMINATED;
 		}
-		if (this.paddle.getX() + this.paddle.getWidth() > getWidth()) {
-			this.paddle.setX(getWidth() - this.paddle.getWidth());
+	}
+
+	private void checkPaddleBounds() {
+		if (paddle.getX() < 0) {
+			paddle.setX(0);
+		}
+		if (paddle.getX() + paddle.getWidth() > getWidth()) {
+			paddle.setX(getWidth() - paddle.getWidth());
 		}
 	}
 
 	private void resetBallAndPaddle() {
 		int panelWidth = 1423;
 		int panelHeight = 800;
-		this.ball.setPosition(panelWidth / 2 - this.ball.getWidth() / 2, panelHeight - 300);
-		this.ball.resetSpeed();
-		this.paddle.setPosition(panelWidth / 2 - this.paddle.getWidth() / 2, panelHeight - 100);
-	}
-
-	private void resetBlocks() {
-		blocks.clear(); // Clear the current blocks
-		// Define block properties
-		int blockWidth = 62;
-		int blockHeight = 25;
-		int rows = 8;
-		int cols = 20;
-		int padding = 8;
-		int offsetX = 20;
-		int offsetY = 20;
-		// Generate new blocks in rows and columns
-		for (int row = 0; row < rows; row++) {
-			for (int col = 0; col < cols; col++) {
-				int x = offsetX + col * (blockWidth + padding);
-				int y = offsetY + row * (blockHeight + padding);
-				Color color = new Color(100 + row * 22, 160, 90); // Color changes by row
-				blocks.add(new Block(x, y, blockWidth, blockHeight, color));
-			}
-		}
+		ball.setPosition(panelWidth / 2 - ball.getWidth() / 2, panelHeight - 300);
+		ball.resetSpeed();
+		paddle.setPosition(panelWidth / 2 - paddle.getWidth() / 2, panelHeight - 100);
 	}
 
 	private void setupKeyBindings() {
 		InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		ActionMap actionMap = getActionMap();
-		// Enter key starts the game
+
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), "startGame");
 		actionMap.put("startGame", new AbstractAction() {
 			private static final long serialVersionUID = 1L;
@@ -191,29 +219,26 @@ public class BlockPanel extends JPanel implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (gameState == GameState.START_SCREEN) {
-					resetBallAndPaddle(); // Reset ball and paddle positions
-					resetBlocks(); // Reset blocks for a new game
-					gameState = GameState.PLAYING;
-					timer.start(); // Start the game loop
-					repaint();
-				}
-				if (gameState == GameState.ELIMINATED) {
+					startNewGame();
+				} else if (gameState == GameState.ELIMINATED) {
 					gameState = GameState.START_SCREEN;
 					lives = 3;
 					score = 0;
-					repaint(); // Trigger a repaint to show the start screen
+					repaint();
 				}
 			}
 		});
 
-		// Left arrow key pressed and released
+		setupMovementKeys(inputMap, actionMap);
+	}
+
+	private void setupMovementKeys(InputMap inputMap, ActionMap actionMap) {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "moveLeftPressed");
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true), "moveLeftReleased");
 
-		// Right arrow key pressed and released
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "moveRightPressed");
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), "moveRightReleased");
-		// Paddle movement logic
+
 		actionMap.put("moveLeftPressed", new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 
@@ -223,6 +248,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 				movingRight = false;
 			}
 		});
+
 		actionMap.put("moveLeftReleased", new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 
@@ -231,6 +257,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 				movingLeft = false;
 			}
 		});
+
 		actionMap.put("moveRightPressed", new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 
@@ -240,6 +267,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 				movingLeft = false;
 			}
 		});
+
 		actionMap.put("moveRightReleased", new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 
@@ -250,4 +278,53 @@ public class BlockPanel extends JPanel implements ActionListener {
 		});
 	}
 
+	private void startNewGame() {
+		resetBallAndPaddle();
+		resetBlocks();
+		gameState = GameState.PLAYING;
+		timer.start();
+		repaint();
+	}
+
+	private void resetBlocks() {
+		loadLevels(); // Recreate all levels
+		currentLevel = 0; // Reset to the first level
+		loadCurrentLevel(); // Load the first level
+	}
+
+	private void loadLevels() {
+		levels = new ArrayList<>();
+		List<Block> level1 = createLevel(7, 20, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, Color.ORANGE });
+		List<Block> level2 = createLevel(8, 20, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK });
+		List<Block> level3 = createLevel(9, 20, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK, new Color(128, 0, 128)});
+
+		levels.add(level1);
+		levels.add(level2);
+		levels.add(level3);
+
+		loadCurrentLevel();
+	}
+
+	private void loadCurrentLevel() {
+		blocks.clear();
+		blocks.addAll(levels.get(currentLevel));
+	}
+
+	private List<Block> createLevel(int rows, int cols, Color[] color) {
+		List<Block> levelBlocks = new ArrayList<>();
+		int blockWidth = 62;
+		int blockHeight = 25;
+		int padding = 8;
+		int offsetX = 20;
+		int offsetY = 20;
+
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				int x = offsetX + col * (blockWidth + padding);
+				int y = offsetY + row * (blockHeight + padding);
+				levelBlocks.add(new Block(x, y, blockWidth, blockHeight, color[row]));
+			}
+		}
+		return levelBlocks;
+	}
 }
