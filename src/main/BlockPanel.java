@@ -21,7 +21,6 @@ public class BlockPanel extends JPanel implements ActionListener {
 	private Paddle paddle;
 	private int score;
 	private int lives;
-
 	// Paddle movement
 	private boolean movingLeft = false;
 	private boolean movingRight = false;
@@ -30,7 +29,8 @@ public class BlockPanel extends JPanel implements ActionListener {
 	private enum GameState {
 		START_SCREEN, PLAYING, ELIMINATED
 	}
-	private GameState gameState = GameState.START_SCREEN;
+
+	private GameState gameState;
 
 	public BlockPanel(List<Block> blocks, Ball ball, Paddle paddle, Color backgroundColor) {
 		this.blocks = blocks;
@@ -38,12 +38,13 @@ public class BlockPanel extends JPanel implements ActionListener {
 		this.paddle = paddle;
 		this.score = 0;
 		this.lives = 3;
+		this.gameState = GameState.START_SCREEN;
 		this.setPreferredSize(new Dimension(1423, 800));
 		this.setBackground(backgroundColor);
 		// Setup a timer to repeatedly call actionPerformed
-		this.timer = new Timer(10, this); // Adjust delay as needed
+		this.timer = new Timer(10, this);
 		this.timer.start();
-		// Setup key bindings for paddle movement
+		// Setup key bindings for keyboard actions
 		setupKeyBindings();
 	}
 
@@ -62,13 +63,11 @@ public class BlockPanel extends JPanel implements ActionListener {
 			for (Block block : blocks) {
 				block.draw(g); // Draw each block in the list
 			}
-			ball.draw(g); // Draw the ball
-			paddle.draw(g); // Draw the paddle
-			// Draw score
+			this.ball.draw(g); // Draw the ball
+			this.paddle.draw(g); // Draw the paddle
 			// Set text properties (color, font, etc.)
 			g.setColor(Color.WHITE); // Set the text color
-			g.setFont(new Font("Arial", Font.BOLD, 20)); // Set the font (optional)
-			// Draw the text at a specific position (x, y)
+			g.setFont(new Font("Arial", Font.BOLD, 20));
 			g.drawString("Score: " + this.score, 20, 760);
 			g.drawString("Lives: " + this.lives, 1320, 760);
 		} else if (gameState == GameState.ELIMINATED) {
@@ -84,16 +83,16 @@ public class BlockPanel extends JPanel implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (gameState == GameState.PLAYING) {
-			ball.move();
-			if (movingLeft) {
-				paddle.moveLeft();
+		if (this.gameState == GameState.PLAYING) {
+			this.ball.move();
+			if (this.movingLeft) {
+				this.paddle.moveLeft();
 			} else if (movingRight) {
-				paddle.moveRight();
+				this.paddle.moveRight();
 			} else {
-				paddle.stop();
+				this.paddle.stop();
 			}
-			paddle.move();
+			this.paddle.move();
 			checkCollision();
 			checkBounds();
 			repaint();
@@ -102,39 +101,34 @@ public class BlockPanel extends JPanel implements ActionListener {
 
 	private void checkCollision() {
 		double angle;
-		Rectangle ballBounds = ball.getBounds();
-		Rectangle paddleBounds = paddle.getBounds();
-		for (int i = blocks.size() - 1; i >= 0; i--) {
-			Block block = blocks.get(i);
-			if (block.getBounds().intersects(ballBounds)) {
-				// Get working directory
-				// System.out.println(new File(".").getAbsolutePath());
-				Sound.play("./audio/breakout-meetingBlock.wav"); // Play hitting block sound
+		for (int i = this.blocks.size() - 1; i >= 0; i--) {
+			if (this.blocks.get(i).isHit(this.ball)) {
+				Sound.play("./audio/breakout-meetingBlock.wav");
 				this.score++;
-				blocks.remove(i); // Remove the block if it collides
-				ball.bounceOffVertical(); // Bounce ball on collision
-				angle = ball.angle();
-				if (angle > 40 && angle < 120) {
-					ball.randomAngleChange();
-					ball.bounceOffHorizontal(); // Bounce ball on collision and the chance is 0.
+				this.blocks.remove(i); // Remove the block if it collides
+				this.ball.bounceOffVertical(); // Bounce ball on collision
+				angle = this.ball.angle();
+				if (angle < 60 || angle > 120) {
+					this.ball.randomAngleChange();
+					this.ball.bounceOffHorizontal();
 				}
 				break; // Exit loop after collision to avoid multiple detections
 			}
 		}
-		if (paddleBounds.intersects(ballBounds)) {
-			ball.bounceOffHorizontal();
-			Sound.play("./audio/breakout-meetingPaddle.wav"); // Play hitting paddle sound
+		if (this.paddle.isHit(this.ball)) {
+			this.ball.bounceOffHorizontal();
+			Sound.play("./audio/breakout-meetingPaddle.wav");
 		}
 	}
 
 	private void checkBounds() {
-		Rectangle ballBounds = ball.getBounds();
+		Rectangle ballBounds = this.ball.getBounds();
 		if (ballBounds.getMinX() < 0 || ballBounds.getMaxX() > getWidth()) {
-			ball.bounceOffVertical(); // Bounce off left or right edge
+			this.ball.bounceOffVertical(); // Bounce off left or right edge
 			Sound.play("./audio/breakout-meetingSideWalls.wav"); // Play hitting side walls sound
 		}
 		if (ballBounds.getMinY() < 0 || ballBounds.getMaxY() > getHeight()) {
-			ball.bounceOffHorizontal(); // Bounce off top or bottom edge
+			this.ball.bounceOffHorizontal(); // Bounce off top or bottom edge
 			Sound.play("./audio/breakout-meetingSideWalls.wav"); // Play hitting side walls sound
 		}
 		if (ballBounds.getMaxY() > 770) {
@@ -149,11 +143,40 @@ public class BlockPanel extends JPanel implements ActionListener {
 			}
 		}
 		// Prevent the paddle from moving outside the panel
-		if (paddle.x < 0) {
-			paddle.x = 0;
+		if (this.paddle.getX() < 0) {
+			this.paddle.setX(0);
 		}
-		if (paddle.x + paddle.width > getWidth()) {
-			paddle.x = getWidth() - paddle.width;
+		if (this.paddle.getX() + this.paddle.getWidth() > getWidth()) {
+			this.paddle.setX(getWidth() - this.paddle.getWidth());
+		}
+	}
+
+	private void resetBallAndPaddle() {
+		int panelWidth = 1423;
+		int panelHeight = 800;
+		this.ball.setPosition(panelWidth / 2 - this.ball.getWidth() / 2, panelHeight - 300);
+		this.ball.resetSpeed();
+		this.paddle.setPosition(panelWidth / 2 - this.paddle.getWidth() / 2, panelHeight - 100);
+	}
+
+	private void resetBlocks() {
+		blocks.clear(); // Clear the current blocks
+		// Define block properties
+		int blockWidth = 62;
+		int blockHeight = 25;
+		int rows = 8;
+		int cols = 20;
+		int padding = 8;
+		int offsetX = 20;
+		int offsetY = 20;
+		// Generate new blocks in rows and columns
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				int x = offsetX + col * (blockWidth + padding);
+				int y = offsetY + row * (blockHeight + padding);
+				Color color = new Color(100 + row * 22, 160, 90); // Color changes by row
+				blocks.add(new Block(x, y, blockWidth, blockHeight, color));
+			}
 		}
 	}
 
@@ -164,6 +187,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), "startGame");
 		actionMap.put("startGame", new AbstractAction() {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (gameState == GameState.START_SCREEN) {
@@ -224,40 +248,6 @@ public class BlockPanel extends JPanel implements ActionListener {
 				movingRight = false;
 			}
 		});
-	}
-
-	private void resetBallAndPaddle() {
-		// Assuming the panel size is 1423x800
-		int panelWidth = 1423;
-		int panelHeight = 800;
-		// Reset the ball's position to the center above the paddle
-		ball.setPosition(panelWidth / 2 - ball.getWidth() / 2, panelHeight - 300);	
-		// Reset the ball's speed
-		ball.resetSpeed();
-		// Reset the paddle's position to the center bottom of the screen
-		paddle.setPosition(panelWidth / 2 - paddle.getWidth() / 2, panelHeight - 100);
-	}
-
-	private void resetBlocks() {
-		blocks.clear(); // Clear the current blocks
-		// Define block properties
-		int blockWidth = 62;
-		int blockHeight = 25;
-		int rows = 8;
-		int cols = 20;
-		int padding = 8;
-		int offsetX = 20;
-		int offsetY = 20;
-		// Generate new blocks in rows and columns
-		for (int row = 0; row < rows; row++) {
-			for (int col = 0; col < cols; col++) {
-				int x = offsetX + col * (blockWidth + padding);
-				int y = offsetY + row * (blockHeight + padding);
-				Color color = new Color(100 + row * 22, 160, 90); // Color changes by row
-				blocks.add(new Block(x, y, blockWidth, blockHeight, color));
-			}
-		}
-		;
 	}
 
 }
