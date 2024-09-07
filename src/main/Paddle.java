@@ -81,5 +81,9 @@ public class Paddle {
 	public boolean isHit(Ball b) {
 		return this.getBounds().intersects(b.getBounds());
 	}
-
+	
+	public boolean hittingPoint(Ball b) {
+		 double position = b.getX()-this.x;
+		 return position > 90 || position < 30;
+	}
 }

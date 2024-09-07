@@ -144,7 +144,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 		if (paddle.isHit(ball)) {
 			ball.bounceOffVertical();
 			ball.randomAngleChange();
-			if (Math.abs(ball.angle()) < 40 || Math.abs(ball.angle()) > 140) {
+			if (paddle.hittingPoint(ball)) {
 				ball.bounceOffHorizontal();
 			}
 			Sound.play("./audio/breakout-meetingPaddle.wav");

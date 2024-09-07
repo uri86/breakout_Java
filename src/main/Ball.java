@@ -68,4 +68,8 @@ public class Ball {
 	public void setX(double x) {
 		this.x = x;
 	}
+	
+	public double getX() {
+		return this.x;
+	}
 }
