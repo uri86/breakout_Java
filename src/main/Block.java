@@ -39,4 +39,12 @@ public class Block {
     public boolean isDestroyed() {
     	return this.remainingHits == 0;
     }
+    
+    public int getY() {
+    	return this.y;
+    }
+    
+    public int getHeight() {
+    	return this.height;
+    }
 }

@@ -85,12 +85,12 @@ public class BlockPanel extends JPanel implements ActionListener {
 
 	private void drawGameOverScreen(Graphics g) {
 		g.setColor(Color.RED);
-        g.setFont(new Font("Arial", Font.BOLD, 40));
-        g.drawString("GAME OVER", 590, 300);
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        g.drawString("Press ENTER to Restart", 610, 350);
-        Sound.play("./audio/game-over.wav");
+		g.setFont(new Font("Arial", Font.BOLD, 40));
+		g.drawString("GAME OVER", 590, 300);
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Arial", Font.PLAIN, 20));
+		g.drawString("Press ENTER to Restart", 610, 350);
+		Sound.play("./audio/game-over.wav");
 	}
 
 	private void drawWinScreen(Graphics g) {
@@ -126,21 +126,22 @@ public class BlockPanel extends JPanel implements ActionListener {
 	}
 
 	private void checkCollision() {
-		for (int i = blocks.size() - 1; i >= 0; i--) {
-			if (blocks.get(i).isHit(ball)) {
-				Sound.play("./audio/breakout-meetingBlock.wav");
-				ball.bounceOffVertical();
-				if (Math.abs(ball.angle()) < 40 || Math.abs(ball.angle()) > 140) {
-					ball.bounceOffHorizontal();
+		if (ball.getY() < blocks.get(blocks.size() - 1).getY() + blocks.get(blocks.size() - 1).getHeight()) {
+			for (int i = blocks.size() - 1; i >= 0; i--) {
+				if (blocks.get(i).isHit(ball)) {
+					Sound.play("./audio/breakout-meetingBlock.wav");
+					ball.bounceOffVertical();
+					if (Math.abs(ball.angle()) < 40 || Math.abs(ball.angle()) > 140) {
+						ball.bounceOffHorizontal();
+					}
+					if (blocks.get(i).isDestroyed()) {
+						score++;
+						blocks.remove(i);
+					}
+					break;
 				}
-				if(blocks.get(i).isDestroyed()) {
-					score++;
-					blocks.remove(i);
-				}
-				break;
 			}
 		}
-
 		if (paddle.isHit(ball)) {
 			ball.bounceOffVertical();
 			ball.randomAngleChange();
@@ -300,9 +301,12 @@ public class BlockPanel extends JPanel implements ActionListener {
 
 	private void loadLevels() {
 		levels = new ArrayList<>();
-		List<Block> level1 = createLevel(7, 20, 1, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, new Color(128, 0, 128) });
-		List<Block> level2 = createLevel(8, 20, 2, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,	Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK });
-		List<Block> level3 = createLevel(8, 20, 3, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.ORANGE, new Color(128, 0, 128)});
+		List<Block> level1 = createLevel(7, 20, 1, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,
+				Color.CYAN, Color.MAGENTA, new Color(128, 0, 128) });
+		List<Block> level2 = createLevel(8, 20, 2, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,
+				Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.PINK });
+		List<Block> level3 = createLevel(8, 20, 3, new Color[] { Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW,
+				Color.CYAN, Color.MAGENTA, Color.ORANGE, new Color(128, 0, 128) });
 
 		levels.add(level1);
 		levels.add(level2);
