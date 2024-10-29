@@ -90,7 +90,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Arial", Font.PLAIN, 20));
 		g.drawString("Press ENTER to Restart", 610, 350);
-		Sound.play("./audio/game-over.wav");
+		Sound.play("./src/audio/game-over.wav");
 	}
 
 	private void drawWinScreen(Graphics g) {
@@ -100,7 +100,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Arial", Font.PLAIN, 20));
 		g.drawString("Press ENTER to Restart", 610, 350);
-		Sound.play("./audio/youWin.wav");
+		Sound.play("./src/audio/youWin.wav");
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 		if (ball.getY() < blocks.get(blocks.size() - 1).getY() + blocks.get(blocks.size() - 1).getHeight()) {
 			for (int i = blocks.size() - 1; i >= 0; i--) {
 				if (blocks.get(i).isHit(ball)) {
-					Sound.play("./audio/breakout-meetingBlock.wav");
+					Sound.play("./src/audio/breakout-meetingBlock.wav");
 					ball.bounceOffVertical();
 					if (Math.abs(ball.angle()) < 40 || Math.abs(ball.angle()) > 140) {
 						ball.bounceOffHorizontal();
@@ -148,7 +148,7 @@ public class BlockPanel extends JPanel implements ActionListener {
 			if (paddle.hittingPoint(ball)) {
 				ball.bounceOffHorizontal();
 			}
-			Sound.play("./audio/breakout-meetingPaddle.wav");
+			Sound.play("./src/audio/breakout-meetingPaddle.wav");
 		}
 
 		if (blocks.isEmpty()) {
@@ -171,12 +171,12 @@ public class BlockPanel extends JPanel implements ActionListener {
 
 		if (ballBounds.getMinX() < 0 || ballBounds.getMaxX() > getWidth()) {
 			ball.bounceOffHorizontal();
-			Sound.play("./audio/breakout-meetingSideWalls.wav");
+			Sound.play("./src/audio/breakout-meetingSideWalls.wav");
 		}
 
 		if (ballBounds.getMinY() < 0 || ballBounds.getMaxY() > getHeight()) {
 			ball.bounceOffVertical();
-			Sound.play("./audio/breakout-meetingSideWalls.wav");
+			Sound.play("./src/audio/breakout-meetingSideWalls.wav");
 		}
 
 		if (ballBounds.getMaxY() > 770) {
